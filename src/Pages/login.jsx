@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import loginImg from "../assets/login.jpg";
-import axios from "axios"; 
+import { loginUser } from "../services/authServices";
 
-export default function Login() {
+export default function Login({ setToken }) { // receive setToken from parent
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,19 +20,12 @@ export default function Login() {
 
     setLoading(true);
     try {
-     
-      const res = await axios.post("https://your-backend.com/api/login", {
-        email,
-        password,
-      });
-
-
-      localStorage.setItem("token", res.data.token);
-
+      const res = await loginUser({ email, password });
+      if (res.token) setToken(res.token); // store in memory
       setMessage("✅ Login successful!");
-      setTimeout(() => navigate("/home"), 1000);
+      setTimeout(() => navigate("/home"), 500);
     } catch (err) {
-      setMessage(`❌ ${err.response?.data?.message || "Login failed"}`);
+      setMessage(`❌ ${err.message || "Login failed"}`);
     } finally {
       setLoading(false);
     }
@@ -40,15 +33,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-  
       <div className="w-full md:w-1/2 flex flex-col justify-center px-6 sm:px-10 md:px-16 lg:px-20 py-10 bg-white">
         <div className="text-left mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 uppercase">
             WELCOME BACK
           </h1>
-          <p className="text-gray-500 mt-1">
-            Welcome back! Please enter your details.
-          </p>
+          <p className="text-gray-500 mt-1">Welcome back! Please enter your details.</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
@@ -107,7 +97,6 @@ export default function Login() {
         </p>
       </div>
 
- 
       <div className="hidden md:flex w-1/2 bg-[#fff0f0] justify-center items-end relative">
         <img
           src={loginImg}
@@ -115,7 +104,6 @@ export default function Login() {
           className="w-[90%] h-auto object-contain mb-10"
         />
       </div>
-
 
       <div className="flex md:hidden justify-center bg-[#fff0f0] mt-6">
         <img
