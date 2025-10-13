@@ -47,14 +47,14 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left Side - Form */}
+
       <div className="w-full md:w-1/2 flex flex-col justify-center px-6 sm:px-10 md:px-16 lg:px-20 py-10 bg-white">
         <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-blue-600 text-center md:text-left">
           Sign Up
         </h1>
 
         <form onSubmit={handleSignup} className="space-y-5">
-          {/* Email */}
+        
           <div>
             <label className="block mb-1 text-gray-600">Email</label>
             <input
@@ -66,7 +66,7 @@ export default function Signup() {
             />
           </div>
 
-          {/* Phone Number */}
+     
           <div>
             <label className="block mb-1 text-gray-600">Phone Number</label>
             <input
@@ -78,7 +78,6 @@ export default function Signup() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block mb-1 text-gray-600">Password</label>
             <input
@@ -90,7 +89,7 @@ export default function Signup() {
             />
           </div>
 
-          {/* Confirm Password */}
+      
           <div>
             <label className="block mb-1 text-gray-600">Confirm Password</label>
             <input
@@ -102,7 +101,7 @@ export default function Signup() {
             />
           </div>
 
-          {/* Message */}
+   
           {message && (
             <div
               className={`p-3 rounded-md text-sm font-medium ${
@@ -115,7 +114,6 @@ export default function Signup() {
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -137,7 +135,6 @@ export default function Signup() {
         </p>
       </div>
 
-      {/* Right Side - Image */}
       <div className="hidden md:flex w-1/2 bg-[#fff0f0] justify-center items-end relative">
         <img
           src={signupImg}
@@ -146,7 +143,7 @@ export default function Signup() {
         />
       </div>
 
-      {/* Mobile Image */}
+     
       <div className="flex md:hidden justify-center bg-[#fff0f0] mt-6">
         <img
           src={signupImg}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import loginImg from "../assets/login.jpg";
-import axios from "axios"; // Make sure to install axios
+import axios from "axios"; 
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,13 +20,13 @@ export default function Login() {
 
     setLoading(true);
     try {
-      // 🔹 API call to backend
+     
       const res = await axios.post("https://your-backend.com/api/login", {
         email,
         password,
       });
 
-      // 🔹 Save token if needed
+
       localStorage.setItem("token", res.data.token);
 
       setMessage("✅ Login successful!");
@@ -40,7 +40,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Left Side - Form */}
+  
       <div className="w-full md:w-1/2 flex flex-col justify-center px-6 sm:px-10 md:px-16 lg:px-20 py-10 bg-white">
         <div className="text-left mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 uppercase">
@@ -107,7 +107,7 @@ export default function Login() {
         </p>
       </div>
 
-      {/* Right Side - Image */}
+ 
       <div className="hidden md:flex w-1/2 bg-[#fff0f0] justify-center items-end relative">
         <img
           src={loginImg}
@@ -116,7 +116,7 @@ export default function Login() {
         />
       </div>
 
-      {/* Mobile Image */}
+
       <div className="flex md:hidden justify-center bg-[#fff0f0] mt-6">
         <img
           src={loginImg}
