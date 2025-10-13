@@ -98,7 +98,7 @@ export default function Login() {
                 : "bg-red-600 hover:bg-red-700"
             }`}
           >
-            {loading ? "Logging in..." : "Sign in"}
+            {loading ? "Logging in..." : "Login"}
           </button>
 
          
