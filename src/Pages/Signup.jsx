@@ -35,7 +35,7 @@ export default function Signup() {
     setMessage("");
 
     setTimeout(() => {
-    
+      // Save user info to localStorage
       const user = { email, phone, password };
       localStorage.setItem("userData", JSON.stringify(user));
 
@@ -58,7 +58,7 @@ export default function Signup() {
           <div>
             <label className="block mb-1 text-gray-600">Email</label>
             <input
-              type="email"no
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -137,6 +137,7 @@ export default function Signup() {
         </p>
       </div>
 
+      {/* Right Side - Image */}
       <div className="hidden md:flex w-1/2 bg-[#fff0f0] justify-center items-end relative">
         <img
           src={signupImg}
@@ -145,7 +146,7 @@ export default function Signup() {
         />
       </div>
 
-
+      {/* Mobile Image */}
       <div className="flex md:hidden justify-center bg-[#fff0f0] mt-6">
         <img
           src={signupImg}
