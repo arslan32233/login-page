@@ -1,45 +1,44 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import loginImg from "../assets/login.jpg";
+import { toast } from "react-toastify";
 import { loginUser } from "../services/authServices";
 
-export default function Login({ setToken }) { // receive setToken from parent
+export default function Login({ setToken }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setMessage("❌ Please fill all fields");
-      return;
-    }
+    if (!email || !password) return;
 
     setLoading(true);
     try {
       const res = await loginUser({ email, password });
-      if (res.token) setToken(res.token); // store in memory
-      setMessage("✅ Login successful!");
-      setTimeout(() => navigate("/home"), 500);
+      const successMsg = res?.message || "Login Successfully!";
+      toast.success(successMsg);
+      navigate("/home");
     } catch (err) {
-      setMessage(`❌ ${err.message || "Login failed"}`);
+      const errorMsg =
+        err?.response?.data?.message || "Login failed. Please try again.";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      <div className="w-full md:w-1/2 flex flex-col justify-center px-6 sm:px-10 md:px-16 lg:px-20 py-10 bg-white">
-        <div className="text-left mb-6">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 uppercase">
-            WELCOME BACK
-          </h1>
-          <p className="text-gray-500 mt-1">Welcome back! Please enter your details.</p>
-        </div>
+    <div className="min-h-screen flex flex-col md:flex-row bg-white">
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-10 py-10">
+        <h1 className="text-3xl font-bold text-gray-900 uppercase mb-2">
+          WELCOME BACK
+        </h1>
+        <p className="text-gray-500 mb-6">
+          Welcome back! Please enter your details.
+        </p>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
@@ -48,8 +47,9 @@ export default function Login({ setToken }) { // receive setToken from parent
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your email"
+              required
             />
           </div>
 
@@ -59,22 +59,21 @@ export default function Login({ setToken }) { // receive setToken from parent
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your password"
+              required
             />
           </div>
 
-          {message && (
-            <div
-              className={`p-3 rounded-md text-sm font-medium ${
-                message.includes("❌")
-                  ? "bg-red-100 text-red-600 border border-red-400"
-                  : "bg-green-100 text-green-600 border border-green-400"
-              }`}
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => navigate("/forget-password")}
+              className="text-blue-600 text-sm hover:underline"
             >
-              {message}
-            </div>
-          )}
+              Forget Password?
+            </button>
+          </div>
 
           <button
             type="submit"
@@ -97,19 +96,12 @@ export default function Login({ setToken }) { // receive setToken from parent
         </p>
       </div>
 
+   
       <div className="hidden md:flex w-1/2 bg-[#fff0f0] justify-center items-end relative">
         <img
           src={loginImg}
           alt="Login"
           className="w-[90%] h-auto object-contain mb-10"
-        />
-      </div>
-
-      <div className="flex md:hidden justify-center bg-[#fff0f0] mt-6">
-        <img
-          src={loginImg}
-          alt="Login"
-          className="w-[80%] h-auto object-contain"
         />
       </div>
     </div>

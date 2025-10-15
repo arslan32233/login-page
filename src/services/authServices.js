@@ -1,21 +1,27 @@
 import axios from "axios";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const loginUser = async (payload) => {
-  try {
-    const res = await axios.post(`${BASE_URL}api/auth/login`, payload);
-    return res.data; // { token, user }
-  } catch (err) {
-    throw err.response?.data || { message: "Login failed" };
-  }
+    const response = await axios.post(`${BASE_URL}api/auth/login`, payload);
+    return response.data;
 };
 
 export const signupUser = async (payload) => {
-  try {
-    const res = await axios.post(`${BASE_URL}api/auth/signup`, payload);
-    return res.data; // { token, user }
-  } catch (err) {
-    throw err.response?.data || { message: "Signup failed" };
-  }
+    const response = await axios.post(`${BASE_URL}api/auth/signup`, payload);
+    return response.data;
+}
+export const ForgetPassword = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/public/users/forgot-password`, payload);
+    return response.data;
 };
+
+export const forgotNewPassword = async (payload) => {
+    const response = await axios.post(`${BASE_URL}api/public/users/set-new-password`, payload);
+    return response.data;
+};
+
+export const verifyOtp = async (payload) => {
+  const response = await axios.post(`${BASE_URL}/api/public/users/verify-otp`, payload);
+  return response.data;
+};
+

@@ -11,7 +11,7 @@ export default function Home() {
           Welcome to your Home Page. You are now logged in.
         </p>
         <a
-          href="/login"
+          href="/Login"
           className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
         >
           Logout
