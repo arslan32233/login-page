@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
 export default function OTPVerification() {
   const BASE_URL = "https://vox-backend.vercel.app";
@@ -9,93 +8,92 @@ export default function OTPVerification() {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-
+  // countdown timer
   useEffect(() => {
     let interval;
-    if (timer > 0) {
-      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-    }
+    if (timer > 0) interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     return () => clearInterval(interval);
   }, [timer]);
 
- 
-  const handleSendOtp = async (e) => {
-    e?.preventDefault();
-    if (!email) return toast.error("Please enter your email", { icon: "❌" });
-
-    try {
-      const res = await fetch(`${BASE_URL}/api/public/users/send-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Email not found", { icon: "🚫" });
-        return;
-      }
-
-      setOtpSent(true);
-      setTimer(300); // 5 min
-      toast.success(`OTP sent to ${email} ✅`, { icon: "✉️" });
-    } catch (err) {
-      console.error("Error sending OTP:", err);
-      toast.error("Failed to send OTP 😢");
-    }
-  };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    if (!otp) return toast.error("Please enter OTP", { icon: "⚠️" });
-    if (otp.length !== 6) return toast.warning("OTP must be 6 digits", { icon: "⚠️" });
-
-    try {
-      const res = await fetch(`${BASE_URL}/api/public/users/verify-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ email, otp }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Invalid OTP", { icon: "🚫" });
-        return;
-      }
-
-      toast.success("OTP verified successfully! 🎉", { icon: "✅" });
-      setTimeout(() => navigate("/new-password", { state: { email } }), 2000);
-    } catch (err) {
-      console.error("Error verifying OTP:", err);
-      toast.error("Verification failed 😢");
-    }
-  };
-
-  
+  // format mm:ss
   const formatTimer = (sec) => {
     const m = Math.floor(sec / 60).toString().padStart(2, "0");
     const s = (sec % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
 
+  // send otp
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    if (!email) return toast.error("Please enter your email");
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/api/public/users/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Email not found");
+        return;
+      }
+
+      setOtpSent(true);
+      setTimer(600); // 10 minutes
+      toast.success("OTP sent successfully ✅");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to send OTP 😢");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // verify otp
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otp) return toast.error("Please enter OTP");
+    if (otp.length !== 6) return toast.warning("OTP must be 6 digits");
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/api/public/users/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Invalid OTP");
+        return;
+      }
+
+      toast.success("OTP verified successfully 🎉");
+      setTimeout(() => navigate("/new-password"), 2000);
+    } catch (err) {
+      console.error(err);
+      toast.error("Verification failed 😢");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 text-gray-800">
       <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-md p-6 space-y-4">
         <h2 className="text-2xl font-bold text-center text-blue-600">Email Verification</h2>
-        <p className="text-center text-gray-600">Enter your email to receive an OTP</p>
+        <p className="text-center text-gray-600">
+          Enter your email to receive an OTP
+        </p>
 
         {!otpSent ? (
-        
           <form onSubmit={handleSendOtp} className="space-y-4">
             <input
               type="email"
@@ -104,19 +102,43 @@ export default function OTPVerification() {
               placeholder="Enter your email"
               className="w-full bg-gray-50 text-gray-900 border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
             />
+
             <button
               type="submit"
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-all"
+              disabled={loading}
+              className={`w-full flex items-center justify-center gap-2 py-2 rounded-md text-white transition ${
+                loading
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-red-600 hover:bg-blue-700"
+              }`}
             >
-              Send OTP
+              {loading && (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+              )}
+              {loading ? "Sending OTP..." : "Send OTP"}
             </button>
           </form>
         ) : (
-
           <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <p className="text-gray-600 text-center">
-              OTP sent to <span className="font-semibold">{email}</span>
-            </p>
             <input
               type="text"
               value={otp}
@@ -125,11 +147,39 @@ export default function OTPVerification() {
               maxLength={6}
               className="w-full bg-gray-50 text-gray-900 border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-center tracking-widest text-lg"
             />
+
             <button
               type="submit"
-              className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-all"
+              disabled={loading}
+              className={`w-full flex items-center justify-center gap-2 py-2 rounded-md text-white transition ${
+                loading
+                  ? "bg-green-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
             >
-              Verify OTP
+              {loading && (
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+              )}
+              {loading ? "Verifying..." : "Verify OTP"}
             </button>
 
             <div className="flex justify-between items-center">
@@ -139,35 +189,19 @@ export default function OTPVerification() {
               <button
                 type="button"
                 onClick={handleSendOtp}
-                className="text-sm text-blue-600 hover:underline"
-                disabled={timer > 0}
+                disabled={timer > 0 || loading}
+                className={`text-sm ${
+                  timer > 0 || loading
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "text-blue-600 hover:underline"
+                }`}
               >
-                Resend OTP
+                {loading ? "Sending..." : "Resend OTP"}
               </button>
             </div>
           </form>
         )}
       </div>
-
-      <ToastContainer
-        position="bottom-center"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="light"
-        toastStyle={{
-          backgroundColor: "#ffffff",
-          color: "#333",
-          borderRadius: "10px",
-          border: "1px solid #ddd",
-        }}
-        progressStyle={{
-          background: "linear-gradient(90deg, #3b82f6, #10b981, #9333ea)",
-        }}
-      />
     </div>
   );
 }

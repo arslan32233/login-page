@@ -1,25 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+
 export default function OTPVerification() {
   const BASE_URL = "https://vox-backend.vercel.app";
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const navigate = useNavigate();
+
+  // countdown timer
   useEffect(() => {
     let interval;
-    if (timer > 0) interval = setInterval(() => setTimer(prev => prev - 1), 1000);
+    if (timer > 0) interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
     return () => clearInterval(interval);
   }, [timer]);
+
+  // send OTP handler
   const handleSendOtp = async (e) => {
     e?.preventDefault();
     if (!email) return toast.error("Please enter your email", { icon: "❌" });
 
+    setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/public/users/forgot-password`, {  // <-- FIXED
+      const res = await fetch(`${BASE_URL}/api/public/users/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -33,21 +40,25 @@ export default function OTPVerification() {
       }
 
       setOtpSent(true);
-      setTimer(300);
-      toast.success(`OTP sent to ${email} ✅`, { icon: "✉️" });
+      setTimer(600); // 🔹 now 10 minutes
+      toast.success("OTP has been sent to your email ✅", { icon: "✉️" });
     } catch (err) {
       console.log(err);
       toast.error("Failed to send OTP 😢");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // verify OTP handler
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otp) return toast.error("Please enter OTP", { icon: "⚠️" });
     if (otp.length !== 6) return toast.warning("OTP must be 6 digits", { icon: "⚠️" });
 
+    setVerifying(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/public/users/verify-otp`, {  
+      const res = await fetch(`${BASE_URL}/api/public/users/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
@@ -65,9 +76,12 @@ export default function OTPVerification() {
     } catch (err) {
       console.log(err);
       toast.error("Verification failed 😢");
+    } finally {
+      setVerifying(false);
     }
   };
 
+  // format timer mm:ss
   const formatTimer = (sec) => {
     const m = Math.floor(sec / 60).toString().padStart(2, "0");
     const s = (sec % 60).toString().padStart(2, "0");
@@ -88,12 +102,19 @@ export default function OTPVerification() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="w-full bg-gray-50 text-gray-900 border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+              required
             />
+
             <button
               type="submit"
-              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-all"
+              disabled={loading}
+              className={`w-full py-2 rounded-md text-white font-medium transition-all ${
+                loading
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              Send OTP
+              {loading ? "Sending OTP..." : "Send OTP"}
             </button>
           </form>
         ) : (
@@ -106,11 +127,17 @@ export default function OTPVerification() {
               maxLength={6}
               className="w-full bg-gray-50 text-gray-900 border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-center tracking-widest text-lg"
             />
+
             <button
               type="submit"
-              className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-all"
+              disabled={verifying}
+              className={`w-full py-2 rounded-md text-white font-medium transition-all ${
+                verifying
+                  ? "bg-green-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
             >
-              Verify OTP
+              {verifying ? "Verifying..." : "Verify OTP"}
             </button>
 
             <div className="flex justify-between items-center">
@@ -118,7 +145,9 @@ export default function OTPVerification() {
               <button
                 type="button"
                 onClick={handleSendOtp}
-                className="text-sm text-blue-600 hover:underline"
+                className={`text-sm ${
+                  timer > 0 ? "text-gray-400 cursor-not-allowed" : "text-blue-600 hover:underline"
+                }`}
                 disabled={timer > 0}
               >
                 Resend OTP
@@ -127,19 +156,6 @@ export default function OTPVerification() {
           </form>
         )}
       </div>
-
-      <ToastContainer
-        position="bottom-center"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="light"
-        toastStyle={{ backgroundColor: "#ffffff", color: "#333", borderRadius: "10px", border: "1px solid #ddd" }}
-        progressStyle={{ background: "linear-gradient(90deg, #3b82f6, #10b981, #9333ea)" }}
-      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ export default function NewPassword() {
   const [email, setEmail] = useState(location.state?.email || "");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false); // 👈 Added for button state
 
   const handleReset = async (e) => {
     e.preventDefault();
@@ -18,13 +19,17 @@ export default function NewPassword() {
     if (newPassword !== confirmPassword) return;
 
     try {
+      setLoading(true); // 👈 Start loading
       await forgotNewPassword({ email, newPassword });
-      toast.success("Password updated successfully! 🎉");
+      toast.success("Password has been reset successfully! 🎉"); // 👈 Updated message
       navigate("/login");
     } catch (err) {
       const errorMsg =
-        err?.response?.data?.message || "Failed to update password. Please try again.";
+        err?.response?.data?.message ||
+        "Failed to update password. Please try again.";
       toast.error(errorMsg);
+    } finally {
+      setLoading(false); // 👈 Stop loading
     }
   };
 
@@ -68,9 +73,14 @@ export default function NewPassword() {
 
           <button
             type="submit"
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-all"
+            disabled={loading}
+            className={`w-full py-2 rounded-md text-white font-medium transition-all ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Reset Password
+            {loading ? "Resetting..." : "Reset Password"}
           </button>
         </form>
       </div>

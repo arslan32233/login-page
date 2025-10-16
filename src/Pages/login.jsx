@@ -18,8 +18,7 @@ export default function Login({ setToken }) {
     setLoading(true);
     try {
       const res = await loginUser({ email, password });
-      const successMsg = res?.message || "Login Successfully!";
-      toast.success(successMsg);
+      toast.success("Login Successful!");
       navigate("/home");
     } catch (err) {
       const errorMsg =
@@ -78,12 +77,34 @@ export default function Login({ setToken }) {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-md text-white transition ${
+            className={`w-full flex justify-center items-center gap-2 py-2 rounded-md text-white transition ${
               loading
                 ? "bg-blue-400 cursor-not-allowed"
                 : "bg-red-600 hover:bg-blue-700"
             }`}
           >
+            {loading && (
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"
+                ></path>
+              </svg>
+            )}
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
@@ -96,7 +117,6 @@ export default function Login({ setToken }) {
         </p>
       </div>
 
-   
       <div className="hidden md:flex w-1/2 bg-[#fff0f0] justify-center items-end relative">
         <img
           src={loginImg}
