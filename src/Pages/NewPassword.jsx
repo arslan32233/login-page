@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { forgotNewPassword } from "../services/authServices";
+import { forgotNewPassword } from "../services/userServices";
 
 export default function NewPassword() {
   const navigate = useNavigate();
@@ -9,7 +9,7 @@ export default function NewPassword() {
   const [email, setEmail] = useState(location.state?.email || "");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false); // 👈 Added for button state
+  const [loading, setLoading] = useState(false); 
 
   const handleReset = async (e) => {
     e.preventDefault();
@@ -19,9 +19,9 @@ export default function NewPassword() {
     if (newPassword !== confirmPassword) return;
 
     try {
-      setLoading(true); // 👈 Start loading
+      setLoading(true); 
       await forgotNewPassword({ email, newPassword });
-      toast.success("Password has been reset successfully! 🎉"); // 👈 Updated message
+      toast.success("Password has been reset successfully! "); // 👈 Updated message
       navigate("/login");
     } catch (err) {
       const errorMsg =
@@ -29,7 +29,7 @@ export default function NewPassword() {
         "Failed to update password. Please try again.";
       toast.error(errorMsg);
     } finally {
-      setLoading(false); // 👈 Stop loading
+      setLoading(false); 
     }
   };
 

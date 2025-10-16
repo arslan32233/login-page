@@ -1,87 +1,59 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { ForgetPassword } from "../services/userServices"; 
 
-export default function OTPVerification() {
-  const BASE_URL = "https://vox-backend.vercel.app";
+export default function ForgetPasswordPage() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [timer, setTimer] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [verifying, setVerifying] = useState(false);
   const navigate = useNavigate();
 
-  // countdown timer
-  useEffect(() => {
-    let interval;
-    if (timer > 0) interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  // send OTP handler
   const handleSendOtp = async (e) => {
-    e?.preventDefault();
-    if (!email) return toast.error("Please enter your email", { icon: "❌" });
+    e.preventDefault();
+    if (!email) return toast.error("Please enter your email", { icon: "" });
 
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/public/users/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await ForgetPassword({ email });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Email not found", { icon: "🚫" });
-        return;
-      }
-
+      toast.success(res.message || "OTP sent to your email ");
       setOtpSent(true);
-      setTimer(600); // 🔹 now 10 minutes
-      toast.success("OTP has been sent to your email ✅", { icon: "✉️" });
+      setTimer(600); 
     } catch (err) {
-      console.log(err);
-      toast.error("Failed to send OTP 😢");
+      const message = err.response?.data?.message || "Failed to send OTP ";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
-
-  // verify OTP handler
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (!otp) return toast.error("Please enter OTP", { icon: "⚠️" });
-    if (otp.length !== 6) return toast.warning("OTP must be 6 digits", { icon: "⚠️" });
+    if (!otp) return toast.error("Please enter your OTP");
+    if (otp.length !== 6) return toast.warning("OTP must be 6 digits");
 
-    setVerifying(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/public/users/verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
-      });
+      const res = await fetch(
+        "https://vox-backend.vercel.app/api/public/users/verify-otp",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp }),
+        }
+      );
 
       const data = await res.json();
+      if (!res.ok) return toast.error(data.message || "Invalid OTP");
 
-      if (!res.ok) {
-        toast.error(data.message || "Invalid OTP", { icon: "🚫" });
-        return;
-      }
-
-      toast.success("OTP verified successfully! 🎉", { icon: "✅" });
+      toast.success("OTP verified successfully ");
       setTimeout(() => navigate("/new-password"), 2000);
     } catch (err) {
-      console.log(err);
-      toast.error("Verification failed 😢");
-    } finally {
-      setVerifying(false);
+      console.error(err);
+      toast.error("Verification failed ");
     }
   };
-
-  // format timer mm:ss
   const formatTimer = (sec) => {
     const m = Math.floor(sec / 60).toString().padStart(2, "0");
     const s = (sec % 60).toString().padStart(2, "0");
@@ -91,8 +63,12 @@ export default function OTPVerification() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 text-gray-800">
       <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-md p-6 space-y-4">
-        <h2 className="text-2xl font-bold text-center text-blue-600">Email Verification</h2>
-        <p className="text-center text-gray-600">Enter your email to receive an OTP</p>
+        <h2 className="text-2xl font-bold text-center text-blue-600">
+          Forgot Password
+        </h2>
+        <p className="text-center text-gray-600">
+          Enter your email to receive an OTP
+        </p>
 
         {!otpSent ? (
           <form onSubmit={handleSendOtp} className="space-y-4">
@@ -118,41 +94,48 @@ export default function OTPVerification() {
             </button>
           </form>
         ) : (
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
+          <form onSubmit={handleVerifyOtp} className="space-y-4 text-center">
+            <p className="text-green-600 font-medium">
+              OTP has been sent to your email 
+            </p>
+
             <input
               type="text"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               placeholder="Enter 6-digit OTP"
               maxLength={6}
-              className="w-full bg-gray-50 text-gray-900 border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-center tracking-widest text-lg"
+              className="w-full bg-gray-50 text-gray-900 border border-gray-300 px-4 py-2 rounded-md text-center focus:ring-2 focus:ring-blue-500 outline-none tracking-widest text-lg"
             />
 
             <button
               type="submit"
-              disabled={verifying}
+              disabled={loading}
               className={`w-full py-2 rounded-md text-white font-medium transition-all ${
-                verifying
+                loading
                   ? "bg-green-400 cursor-not-allowed"
                   : "bg-green-600 hover:bg-green-700"
               }`}
             >
-              {verifying ? "Verifying..." : "Verify OTP"}
+              {loading ? "Verifying..." : "Verify OTP"}
             </button>
 
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Expires in: {formatTimer(timer)}</span>
-              <button
-                type="button"
-                onClick={handleSendOtp}
-                className={`text-sm ${
-                  timer > 0 ? "text-gray-400 cursor-not-allowed" : "text-blue-600 hover:underline"
-                }`}
-                disabled={timer > 0}
-              >
-                Resend OTP
-              </button>
-            </div>
+            <p className="text-sm text-gray-600">
+              Expires in: {formatTimer(timer)}
+            </p>
+
+            <button
+              type="button"
+              onClick={handleSendOtp}
+              disabled={timer > 0}
+              className={`text-sm ${
+                timer > 0
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-blue-600 hover:underline"
+              }`}
+            >
+              Resend OTP
+            </button>
           </form>
         )}
       </div>

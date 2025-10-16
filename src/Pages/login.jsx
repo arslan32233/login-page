@@ -4,7 +4,7 @@ import loginImg from "../assets/login.jpg";
 import { toast } from "react-toastify";
 import { loginUser } from "../services/authServices";
 
-export default function Login({ setToken }) {
+export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

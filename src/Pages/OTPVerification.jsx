@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function OTPVerification() {
-  const BASE_URL = "https://vox-backend.vercel.app";
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -11,21 +10,13 @@ export default function OTPVerification() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // countdown timer
-  useEffect(() => {
-    let interval;
-    if (timer > 0) interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  // format mm:ss
   const formatTimer = (sec) => {
     const m = Math.floor(sec / 60).toString().padStart(2, "0");
     const s = (sec % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
 
-  // send otp
+  
   const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!email) return toast.error("Please enter your email");
@@ -45,17 +36,15 @@ export default function OTPVerification() {
       }
 
       setOtpSent(true);
-      setTimer(600); // 10 minutes
-      toast.success("OTP sent successfully ✅");
+      setTimer(600); 
+      toast.success("OTP sent successfully ");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to send OTP 😢");
+      toast.error("Failed to send OTP ");
     } finally {
       setLoading(false);
     }
   };
-
-  // verify otp
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otp) return toast.error("Please enter OTP");
@@ -75,11 +64,11 @@ export default function OTPVerification() {
         return;
       }
 
-      toast.success("OTP verified successfully 🎉");
+      toast.success("OTP verified successfully ");
       setTimeout(() => navigate("/new-password"), 2000);
     } catch (err) {
       console.error(err);
-      toast.error("Verification failed 😢");
+      toast.error("Verification failed ");
     } finally {
       setLoading(false);
     }

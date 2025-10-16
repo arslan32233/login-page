@@ -5,7 +5,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 p-6">
       <div className="bg-white shadow-lg rounded-2xl p-8 max-w-md w-full text-center">
         <h1 className="text-3xl font-bold text-blue-700 mb-4">
-          🎉 Logged In Successfully!
+           Logged In Successfully!
         </h1>
         <p className="text-gray-600 mb-6">
           Welcome to your Home Page. You are now logged in.

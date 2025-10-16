@@ -10,18 +10,5 @@ export const signupUser = async (payload) => {
     const response = await axios.post(`${BASE_URL}api/auth/signup`, payload);
     return response.data;
 }
-export const ForgetPassword = async (payload) => {
-    const response = await axios.post(`${BASE_URL}/api/public/users/forgot-password`, payload);
-    return response.data;
-};
 
-export const forgotNewPassword = async (payload) => {
-    const response = await axios.post(`${BASE_URL}api/public/users/set-new-password`, payload);
-    return response.data;
-};
-
-export const verifyOtp = async (payload) => {
-  const response = await axios.post(`${BASE_URL}/api/public/users/verify-otp`, payload);
-  return response.data;
-};
 

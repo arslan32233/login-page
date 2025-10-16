@@ -4,7 +4,7 @@ import signupImg from "../assets/login.jpg";
 import { signupUser } from "../services/authServices";
 import { toast } from "react-toastify";
 
-export default function Signup({ setToken }) {
+export default function Signup() {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -30,28 +30,28 @@ export default function Signup({ setToken }) {
     setLoading(true);
 
     try {
-      console.log("inside try")
       const res = await signupUser({
         name,
         email,
         password,
         preferenceProgramming,
       });
-      console.log(res, "signapi")
 
-      // if (res.token) {
-      //   setToken(res.token);
-      // }
-
-      toast.success("Signup successful 🎉");
+      toast.success("Signup successful ");
       navigate("/login");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Signup failed--custom");
-    } 
-    finally {
+      toast.error(err.response?.data?.message || "Signup failed");
+    } finally {
       setLoading(false);
     }
   };
+  const DotsLoader = () => (
+    <div className="flex space-x-1 justify-center items-center">
+      <div className="h-1.5 w-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+      <div className="h-1.5 w-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+      <div className="h-1.5 w-1.5 bg-white rounded-full animate-bounce" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white">
@@ -131,28 +131,7 @@ export default function Signup({ setToken }) {
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {loading && (
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                ></path>
-              </svg>
-            )}
+            {loading && <DotsLoader />}
             {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
