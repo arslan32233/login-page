@@ -1,13 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
-import Login from "./Pages/login.jsx";
-import Signup from "./Pages/Signup.jsx";
-import ForgetPassword from "./pages/ForgetPassword.jsx";
-import OTPVerification from "./pages/OTPVerification.jsx";
-import NewPassword from "./pages/NewPassword.jsx";
-import SuccessPage from "./pages/SuccessPage.jsx";
-import Home from "./Pages/Home.jsx";
+import { ForgetPassword, Login ,Home, OTPVerification,Signup,NewPassword,SuccessPage} from "./Pages/index.js";
 
 export default function AppRoutes() {
   return (
