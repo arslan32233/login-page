@@ -5,8 +5,11 @@ import Signup from "./Pages/Signup.jsx";
 import ForgetPassword from "./Pages/ForgetPassword.jsx";
 import OTPVerification from "./Pages/OTPVerification.jsx";
 import NewPassword from "./Pages/NewPassword.jsx";
-import SuccessPage from "./Pages/SuccessPage.jsx";
+import SuccessPage from "./pages/SuccessPage.jsx";
 import Home from "./Pages/Home.jsx";
+import PostsPage from "./Pages/PostsPage";
+import UsersPage from "./Pages/UsersPage";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -19,6 +22,8 @@ export default function AppRoutes() {
       <Route path="/new-password" element={<NewPassword />} />
       <Route path="/success" element={<SuccessPage />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/posts" element={<PostsPage />} />
+       <Route path="/users" element={<UsersPage />} />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

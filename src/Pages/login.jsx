@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import loginImg from "../assets/login.jpg";
 import { toast } from "react-toastify";
 import { loginUser } from "../services/authServices";
+import { getAllUsers } from "../services/usersServices"; 
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,13 +17,33 @@ export default function Login() {
 
     setLoading(true);
     try {
+    
       const res = await loginUser({ email, password });
-      toast.success("Login Successful!");
+      toast.success("Login Successful (Backend)!");
       navigate("/home");
     } catch (err) {
-      const errorMsg =
-        err?.response?.data?.message || "Login failed. Please try again.";
-      toast.error(errorMsg);
+      console.warn("Backend login failed, checking JSONPlaceholder...");
+
+      try {
+        const users = await getAllUsers();
+        const foundUser = users.find(
+          (u) => u.email.toLowerCase() === email.toLowerCase()
+        );
+
+        if (foundUser) {
+          toast.success("Login Successful (JSONPlaceholder Demo)!");
+          console.log("Demo user:", foundUser);
+          navigate("/home");
+        } else {
+          const errorMsg =
+            err?.response?.data?.message ||
+            "Invalid email or password. Please try again.";
+          toast.error(errorMsg);
+        }
+      } catch (apiErr) {
+        toast.error("Login failed. Please try again later.");
+        console.error(apiErr);
+      }
     } finally {
       setLoading(false);
     }
@@ -77,7 +98,9 @@ export default function Login() {
             type="submit"
             disabled={loading}
             className={`w-full flex justify-center items-center gap-2 py-2 rounded-md text-white transition ${
-              loading ? "bg-blue-400 cursor-not-allowed" : "bg-red-600 hover:bg-blue-700"
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-red-600 hover:bg-blue-700"
             }`}
           >
             {loading && (
