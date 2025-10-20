@@ -24,13 +24,13 @@ export default function Header() {
 
       <div className="flex items-center gap-4">
         <button
-          onClick={() => navigate("/users")}
+          onClick={() => navigate("/home?tab=users")}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
         >
           Add User
         </button>
         <button
-          onClick={() => navigate("/posts")}
+          onClick={() => navigate("/home?tab=posts")}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
         >
           Add Post
