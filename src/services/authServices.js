@@ -11,4 +11,3 @@ export const signupUser = async (payload) => {
     return response.data;
 }
 
-

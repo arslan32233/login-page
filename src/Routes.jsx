@@ -9,11 +9,10 @@ import SuccessPage from "./pages/SuccessPage.jsx";
 import Home from "./Pages/Home.jsx";
 import PostsPage from "./Pages/PostsPage";
 import UsersPage from "./Pages/UsersPage";
-import Header from "./components/Header.jsx";
+import Header from "./component\s/Header.jsx";
 
    const hideHeaderRoutes = ["/login", "/signup"];
  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
-  const showHeader = ["/home", "/users", "/posts"].includes(location.pathname);
 
 
 export default function AppRoutes() {

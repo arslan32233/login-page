@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+
 import Table from "../components/Table";
 import { getAllUsers, createUser, updateUser } from "../services/usersServices";
 import { getAllPosts, createPost, updatePost } from "../services/postServices";
@@ -21,8 +22,11 @@ export default function Home() {
   }, [location.search]);
 
   useEffect(() => {
-    if (activeTab === "users") getAllUsers().then(setUsers).catch(console.error);
-    else if (activeTab === "posts") getAllPosts().then(setPosts).catch(console.error);
+    if (activeTab === "users") {
+      getAllUsers().then(setUsers).catch(console.error);
+    } else if (activeTab === "posts") {
+      getAllPosts().then(setPosts).catch(console.error);
+    }
 
     setEditItem(null);
     setIsAdding(false);
@@ -46,7 +50,6 @@ export default function Home() {
 
   const handleSave = async () => {
     try {
-
       if (activeTab === "users") {
         if (!formData.email?.includes("@")) {
           toast.error("Please enter a valid email!");
@@ -59,8 +62,10 @@ export default function Home() {
       }
 
       let newItem = { ...formData };
-      if (!newItem.id) newItem.id = Date.now(); 
 
+     if (!newItem.id && isAdding) newItem.id = Date.now();
+
+      
       if (isAdding) {
         if (activeTab === "users") {
           const res = await createUser(newItem);
@@ -70,13 +75,18 @@ export default function Home() {
           setPosts((prev) => [...prev, res]);
         }
         toast.success(`${activeTab === "users" ? "User" : "Post"} added successfully!`);
-      } else if (editItem) {
+      }
+      else if (editItem) {
         if (activeTab === "users") {
           const res = await updateUser(newItem);
-          setUsers((prev) => prev.map((u) => (u.id === res.id ? res : u)));
+          setUsers((prev) =>
+            prev.map((u) => (u.id === res.id ? res : u))
+          );
         } else {
           const res = await updatePost(newItem);
-          setPosts((prev) => prev.map((p) => (p.id === res.id ? res : p)));
+          setPosts((prev) =>
+            prev.map((p) => (p.id === res.id ? res : p))
+          );
         }
         toast.success(`${activeTab === "users" ? "User" : "Post"} updated successfully!`);
       }
@@ -103,8 +113,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">      
-
+    <div className="min-h-screen bg-gray-50">
       <div className="p-6 text-center">
         <h1 className="text-2xl font-semibold mb-6">Dashboard</h1>
 
