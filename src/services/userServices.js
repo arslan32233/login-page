@@ -16,3 +16,9 @@ export const OTPVerification = async (payload) => {
   const response = await axios.post(`${BASE_URL}api/public/users/verify-otp`, payload);
   return response.data;
 };
+// src/services/userServices.js
+
+export const getUserProfile = async (payload) => {
+ const response = await axios.get(`${BASE_URL}api/public/users/profile`, payload);
+  return response.data;
+};

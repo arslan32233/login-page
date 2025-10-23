@@ -1,50 +1,45 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import signupImg from "../assets/login.jpg";
-import { signupUser } from "../services/authServices";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import signupImg from "../assets/login.jpg";
 
 export default function Signup() {
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error, user } = useSelector((state) => state.auth);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [preferenceProgramming, setPreferenceProgramming] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  const handleSignup = async (e) => {
+  const handleSignup = (e) => {
     e.preventDefault();
 
     if (!name || !email || !password || !confirmPassword) {
       toast.error("Please fill all fields");
       return;
     }
-
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const res = await signupUser({
-        name,
-        email,
-        password,
-        preferenceProgramming,
-      });
-
-      toast.success("Signup successful ");
-      navigate("/login");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Signup failed");
-    } finally {
-      setLoading(false);
-    }
+    dispatch(signupThunk({ name, email, password, preferenceProgramming }));
   };
+
+  useEffect(() => {
+    if (user) {
+      toast.success(" success.");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
   const DotsLoader = () => (
     <div className="flex space-x-1 justify-center items-center">
       <div className="h-1.5 w-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
@@ -107,7 +102,7 @@ export default function Signup() {
 
           <div>
             <label className="block mb-1 text-gray-600">
-              References / Programming (comma-separated)
+              Preferences / Programming (comma-separated)
             </label>
             <input
               type="text"

@@ -1,53 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import loginImg from "../assets/login.jpg";
 import { toast } from "react-toastify";
-import { loginUser } from "../services/authServices";
-import { getAllUsers } from "../services/usersServices"; 
+import loginImg from "../assets/login.jpg";
+import { loginThunk } from "../slices/authSlice";
 
 export default function Login() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const { loading, error, user } = useSelector((state) => state.auth);
+
+  const handleLogin = (e) => {
     e.preventDefault();
-    if (!email || !password) return;
-
-    setLoading(true);
-    try {
-    
-      const res = await loginUser({ email, password });
-      toast.success("Login Successful (Backend)!");
-      navigate("/home");
-    } catch (err) {
-      console.warn("Backend login failed, checking JSONPlaceholder...");
-
-      try {
-        const users = await getAllUsers();
-        const foundUser = users.find(
-          (u) => u.email.toLowerCase() === email.toLowerCase()
-        );
-
-        if (foundUser) {
-          toast.success("Login Successful (JSONPlaceholder Demo)!");
-          console.log("Demo user:", foundUser);
-          navigate("/home");
-        } else {
-          const errorMsg =
-            err?.response?.data?.message ||
-            "Invalid email or password. Please try again.";
-          toast.error(errorMsg);
-        }
-      } catch (apiErr) {
-        toast.error("Login failed. Please try again later.");
-        console.error(apiErr);
-      }
-    } finally {
-      setLoading(false);
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
+      return;
     }
+    dispatch(loginThunk({ email, password }));
   };
+
+  useEffect(() => {
+    if (user) {
+      toast.success("Login successful!");
+      navigate("/home");
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white">
@@ -71,7 +58,6 @@ export default function Login() {
               required
             />
           </div>
-
           <div>
             <label className="block mb-1 text-gray-600">Password</label>
             <input
@@ -83,7 +69,6 @@ export default function Login() {
               required
             />
           </div>
-
           <div className="text-right">
             <button
               type="button"
@@ -109,7 +94,7 @@ export default function Login() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-
+        
         <p className="text-sm text-gray-600 mt-4 text-center md:text-left">
           Don’t have an account?{" "}
           <a href="/signup" className="text-red-600 font-medium">

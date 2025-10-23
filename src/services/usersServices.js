@@ -8,21 +8,14 @@ export const getAllUsers = async () => {
 };
 
 export const createUser = async (user) => {
-  try {
     const res = await axios.post(`${BASE_URL}/users`, user);
     return res.data;
-  } catch (error) {
-    return { ...user, id: Date.now() }; 
-  }
+ 
 };
  
 export const updateUser = async (user) => {
   const { id, ...data } = user;
-  try {
+  
     const res = await axios.put(`${BASE_URL}/users/${id}`, data);
     return res.data;
-  } catch (error) {
-  
-    return user;
-  }
 };

@@ -1,45 +1,21 @@
+// src/components/Header.jsx
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function Header() {
-  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
 
   return (
-    <header className="flex items-center justify-between bg-white shadow-md px-6 py-3">
-      <div
-        className="text-2xl font-bold text-blue-600 cursor-pointer"
-        onClick={() => navigate("/")}
-      >
-        PROCRAFT
-      </div>
+    <header className="flex justify-between items-center bg-gray-100 px-6 py-3 shadow">
+      <h1 className="text-xl font-semibold text-blue-700">PROCRAFT</h1>
 
-      <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 w-1/3">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="bg-transparent w-full outline-none text-sm"
-        />
-        <i className="ri-search-line text-gray-500"></i>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate("/home?tab=users")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-        >
-          Add User
-        </button>
-        <button
-          onClick={() => navigate("/home?tab=posts")}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-        >
-          Add Post
-        </button>
-
-        <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center font-semibold text-sm text-gray-700">
-          A
+      {user ? (
+        <div className="text-gray-700">
+          Welcome, <span className="font-semibold">{user.name}</span>
         </div>
-      </div>
+      ) : (
+        <span className="text-gray-400 italic">No Profile</span>
+      )}
     </header>
   );
 }

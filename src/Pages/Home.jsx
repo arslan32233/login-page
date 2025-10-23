@@ -1,19 +1,38 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
-
+import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { logout, setProfile } from "../slices/authSlice";
 import Table from "../components/Table";
 import { getAllUsers, createUser, updateUser } from "../services/usersServices";
 import { getAllPosts, createPost, updatePost } from "../services/postServices";
 
 export default function Home() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
   const [editItem, setEditItem] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({});
+
+  useEffect(() => {
+    const dummyProfile = {
+      name: "Arslan Imran",
+      email: "ali112@gmail.com",
+      password: "brand1212@",
+    };
+    dispatch(setProfile(dummyProfile));
+  }, [dispatch]);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    showToast("info", `👋 ${user?.name || "User"} logged out successfully!`);
+    navigate("/login");
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -23,9 +42,19 @@ export default function Home() {
 
   useEffect(() => {
     if (activeTab === "users") {
-      getAllUsers().then(setUsers).catch(console.error);
+      getAllUsers()
+        .then((res) => {
+          setUsers(res);
+          showToast("success", " Users data loaded successfully!");
+        })
+        .catch((err) => showToast("error", `Failed to load users: ${err.message}`));
     } else if (activeTab === "posts") {
-      getAllPosts().then(setPosts).catch(console.error);
+      getAllPosts()
+        .then((res) => {
+          setPosts(res);
+          showToast("success", "Posts data loaded successfully!");
+        })
+        .catch((err) => showToast("error", `Failed to load posts: ${err.message}`));
     }
 
     setEditItem(null);
@@ -52,43 +81,38 @@ export default function Home() {
     try {
       if (activeTab === "users") {
         if (!formData.email?.includes("@")) {
-          toast.error("Please enter a valid email!");
+          showToast("error", " Please enter a valid email!");
           return;
         }
         if (!/^\d{11}$/.test(formData.phone || "")) {
-          toast.error("Phone number must be 11 digits!");
+          showToast("error", " Phone number must be 11 digits!");
           return;
         }
       }
 
       let newItem = { ...formData };
+      if (!newItem.id && isAdding) newItem.id = Date.now();
 
-     if (!newItem.id && isAdding) newItem.id = Date.now();
-
-      
       if (isAdding) {
         if (activeTab === "users") {
           const res = await createUser(newItem);
           setUsers((prev) => [...prev, res]);
+          showToast("success", res.message || " User added successfully!");
         } else {
           const res = await createPost(newItem);
           setPosts((prev) => [...prev, res]);
+          showToast("success", res.message || " Post added successfully!");
         }
-        toast.success(`${activeTab === "users" ? "User" : "Post"} added successfully!`);
-      }
-      else if (editItem) {
+      } else if (editItem) {
         if (activeTab === "users") {
           const res = await updateUser(newItem);
-          setUsers((prev) =>
-            prev.map((u) => (u.id === res.id ? res : u))
-          );
+          setUsers((prev) => prev.map((u) => (u.id === res.id ? res : u)));
+          showToast("success", res.message || " User updated successfully!");
         } else {
           const res = await updatePost(newItem);
-          setPosts((prev) =>
-            prev.map((p) => (p.id === res.id ? res : p))
-          );
+          setPosts((prev) => prev.map((p) => (p.id === res.id ? res : p)));
+          showToast("success", res.message || " Post updated successfully!");
         }
-        toast.success(`${activeTab === "users" ? "User" : "Post"} updated successfully!`);
       }
 
       setIsAdding(false);
@@ -96,7 +120,7 @@ export default function Home() {
       setFormData({});
     } catch (error) {
       console.error("Error saving:", error);
-      toast.error("Error saving data");
+      showToast("error", ` Error saving data: ${error.message || "Unknown error"}`);
     }
   };
 
@@ -106,17 +130,39 @@ export default function Home() {
     setFormData({});
   };
 
+
   const handleDelete = (id) => {
-    if (activeTab === "users") setUsers((prev) => prev.filter((u) => u.id !== id));
-    else setPosts((prev) => prev.filter((p) => p.id !== id));
-    toast.info(`${activeTab === "users" ? "User" : "Post"} deleted.`);
+    if (activeTab === "users")
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    else
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+
+    showToast("info", `${activeTab === "users" ? "User" : "Post"} deleted successfully!`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6 text-center">
-        <h1 className="text-2xl font-semibold mb-6">Dashboard</h1>
+      <div className="flex justify-between items-center p-6 bg-white shadow-md">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-700">Dashboard</h1>
+          {user ? (
+            <p className="text-gray-500 text-sm">
+              Logged in as: <strong>{user.name}</strong> ({user.email})
+            </p>
+          ) : (
+            <p className="text-gray-400 text-sm">No user profile found</p>
+          )}
+        </div>
 
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+        >
+          Logout
+        </button>
+      </div>
+
+      <div className="p-6 text-center">
         <div className="space-x-4 mb-4">
           <button
             onClick={() => setActiveTab("users")}
