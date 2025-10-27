@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import signupImg from "../assets/login.jpg";
+import { signupThunk } from "../slices/authSlice";
+
 
 export default function Signup() {
   const dispatch = useDispatch();
-  const { loading, error, user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const { loading } = useSelector((state) => state.auth);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,40 +17,30 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [preferenceProgramming, setPreferenceProgramming] = useState([]);
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     if (!name || !email || !password || !confirmPassword) {
       toast.error("Please fill all fields");
       return;
     }
+
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
 
-    dispatch(signupThunk({ name, email, password, preferenceProgramming }));
+    try {
+      const result = await dispatch(
+        signupThunk({ name, email, password, preferenceProgramming })
+      ).unwrap();
+
+      toast.success(result.message || "Signup successful! Please login.");
+      navigate("/login"); // ✅ redirect works now
+    } catch (err) {
+      toast.error(err || "Signup failed.");
+    }
   };
-
-  useEffect(() => {
-    if (user) {
-      toast.success(" success.");
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
-  const DotsLoader = () => (
-    <div className="flex space-x-1 justify-center items-center">
-      <div className="h-1.5 w-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
-      <div className="h-1.5 w-1.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
-      <div className="h-1.5 w-1.5 bg-white rounded-full animate-bounce" />
-    </div>
-  );
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-white">
@@ -63,7 +57,7 @@ export default function Signup() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
-              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -74,7 +68,7 @@ export default function Signup() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -85,7 +79,7 @@ export default function Signup() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -96,7 +90,7 @@ export default function Signup() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
-              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -113,20 +107,19 @@ export default function Signup() {
                 )
               }
               placeholder="e.g. React, Node.js, Python"
-              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full flex items-center justify-center gap-2 py-2 rounded-md text-white transition ${
+            className={`w-full flex justify-center items-center gap-2 py-2 rounded-md text-white transition ${
               loading
                 ? "bg-blue-400 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {loading && <DotsLoader />}
             {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
@@ -144,14 +137,6 @@ export default function Signup() {
           src={signupImg}
           alt="Signup"
           className="w-[90%] h-auto object-contain mb-10"
-        />
-      </div>
-
-      <div className="flex md:hidden justify-center bg-[#fff0f0] mt-6">
-        <img
-          src={signupImg}
-          alt="Signup"
-          className="w-[80%] h-auto object-contain"
         />
       </div>
     </div>

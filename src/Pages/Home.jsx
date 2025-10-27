@@ -1,16 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, setProfile } from "../slices/authSlice";
 import Table from "../components/Table";
 import { getAllUsers, createUser, updateUser } from "../services/usersServices";
 import { getAllPosts, createPost, updatePost } from "../services/postServices";
+import { toast } from "react-toastify";
+
+let toastId = null;
+const showToast = (type, message) => {
+  if (!message) return;
+  if (toastId !== null) toast.dismiss(toastId);
+  const options = { position: "bottom-center", autoClose: 2000, onClose: () => (toastId = null) };
+  switch (type) {
+    case "success": toastId = toast.success(message, options); break;
+    case "error": toastId = toast.error(message, options); break;
+    case "info": toastId = toast.info(message, options); break;
+    case "warn": toastId = toast.warn(message, options); break;
+    default: toastId = toast(message, options); break;
+  }
+};
 
 export default function Home() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user, token } = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
@@ -19,18 +34,31 @@ export default function Home() {
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({});
 
+  const TOKEN_EXPIRY = 5 * 60 * 1000; 
+  const expiryTimeout = useRef(null);
+
   useEffect(() => {
-    const dummyProfile = {
-      name: "Arslan Imran",
-      email: "ali112@gmail.com",
-      password: "brand1212@",
-    };
-    dispatch(setProfile(dummyProfile));
-  }, [dispatch]);
+    if (!user && !token) {
+      const dummyProfile = { name: "Arslan Imran", email: "ali112@gmail.com", token: "dummy-token" };
+      dispatch(setProfile(dummyProfile));
+    }
+  }, [dispatch, user, token]);
+
+  useEffect(() => {
+    if (token) {
+      clearTimeout(expiryTimeout.current);
+      expiryTimeout.current = setTimeout(() => {
+        dispatch(logout());
+        showToast("info", " Your session expired. Logged out automatically!");
+        navigate("/login");
+      }, TOKEN_EXPIRY);
+    }
+    return () => clearTimeout(expiryTimeout.current);
+  }, [token, dispatch, navigate]);
 
   const handleLogout = () => {
     dispatch(logout());
-    showToast("info", `👋 ${user?.name || "User"} logged out successfully!`);
+    showToast("info", ` ${user?.name || "User"} logged out successfully!`);
     navigate("/login");
   };
 
@@ -43,51 +71,28 @@ export default function Home() {
   useEffect(() => {
     if (activeTab === "users") {
       getAllUsers()
-        .then((res) => {
-          setUsers(res);
-          showToast("success", " Users data loaded successfully!");
-        })
+        .then((res) => { setUsers(res); showToast("success", "Users data loaded successfully!"); })
         .catch((err) => showToast("error", `Failed to load users: ${err.message}`));
     } else if (activeTab === "posts") {
       getAllPosts()
-        .then((res) => {
-          setPosts(res);
-          showToast("success", "Posts data loaded successfully!");
-        })
+        .then((res) => { setPosts(res); showToast("success", "Posts data loaded successfully!"); })
         .catch((err) => showToast("error", `Failed to load posts: ${err.message}`));
     }
-
     setEditItem(null);
     setIsAdding(false);
     setFormData({});
   }, [activeTab]);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  const handleAdd = () => {
-    setIsAdding(true);
-    setFormData({});
-    setEditItem(null);
-  };
-
-  const handleEdit = (item) => {
-    setEditItem(item);
-    setFormData(item);
-    setIsAdding(false);
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleAdd = () => { setIsAdding(true); setFormData({}); setEditItem(null); };
+  const handleEdit = (item) => { setEditItem(item); setFormData(item); setIsAdding(false); };
+  const handleCancel = () => { setIsAdding(false); setEditItem(null); setFormData({}); };
 
   const handleSave = async () => {
     try {
       if (activeTab === "users") {
-        if (!formData.email?.includes("@")) {
-          showToast("error", " Please enter a valid email!");
-          return;
-        }
-        if (!/^\d{11}$/.test(formData.phone || "")) {
-          showToast("error", " Phone number must be 11 digits!");
-          return;
-        }
+        if (!formData.email?.includes("@")) { showToast("error", "Please enter a valid email!"); return; }
+        if (!/^\d{11}$/.test(formData.phone || "")) { showToast("error", "Phone number must be 11 digits!"); return; }
       }
 
       let newItem = { ...formData };
@@ -95,48 +100,25 @@ export default function Home() {
 
       if (isAdding) {
         if (activeTab === "users") {
-          const res = await createUser(newItem);
-          setUsers((prev) => [...prev, res]);
-          showToast("success", res.message || " User added successfully!");
+          const res = await createUser(newItem); setUsers((prev) => [...prev, res]); showToast("success", res.message || "User added successfully!");
         } else {
-          const res = await createPost(newItem);
-          setPosts((prev) => [...prev, res]);
-          showToast("success", res.message || " Post added successfully!");
+          const res = await createPost(newItem); setPosts((prev) => [...prev, res]); showToast("success", res.message || "Post added successfully!");
         }
       } else if (editItem) {
         if (activeTab === "users") {
-          const res = await updateUser(newItem);
-          setUsers((prev) => prev.map((u) => (u.id === res.id ? res : u)));
-          showToast("success", res.message || " User updated successfully!");
+          const res = await updateUser(newItem); setUsers((prev) => prev.map((u) => (u.id === res.id ? res : u))); showToast("success", res.message || "User updated successfully!");
         } else {
-          const res = await updatePost(newItem);
-          setPosts((prev) => prev.map((p) => (p.id === res.id ? res : p)));
-          showToast("success", res.message || " Post updated successfully!");
+          const res = await updatePost(newItem); setPosts((prev) => prev.map((p) => (p.id === res.id ? res : p))); showToast("success", res.message || "Post updated successfully!");
         }
       }
 
-      setIsAdding(false);
-      setEditItem(null);
-      setFormData({});
-    } catch (error) {
-      console.error("Error saving:", error);
-      showToast("error", ` Error saving data: ${error.message || "Unknown error"}`);
-    }
+      setIsAdding(false); setEditItem(null); setFormData({});
+    } catch (err) { showToast("error", `Error saving data: ${err.message || "Unknown error"}`); }
   };
-
-  const handleCancel = () => {
-    setIsAdding(false);
-    setEditItem(null);
-    setFormData({});
-  };
-
 
   const handleDelete = (id) => {
-    if (activeTab === "users")
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-    else
-      setPosts((prev) => prev.filter((p) => p.id !== id));
-
+    if (activeTab === "users") setUsers((prev) => prev.filter((u) => u.id !== id));
+    else setPosts((prev) => prev.filter((p) => p.id !== id));
     showToast("info", `${activeTab === "users" ? "User" : "Post"} deleted successfully!`);
   };
 
@@ -146,101 +128,35 @@ export default function Home() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-700">Dashboard</h1>
           {user ? (
-            <p className="text-gray-500 text-sm">
-              Logged in as: <strong>{user.name}</strong> ({user.email})
-            </p>
-          ) : (
-            <p className="text-gray-400 text-sm">No user profile found</p>
-          )}
+            <p className="text-gray-500 text-sm">Logged in as: <strong>{user.name}</strong> ({user.email})</p>
+          ) : (<p className="text-gray-400 text-sm">No user profile found</p>)}
         </div>
-
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-        >
-          Logout
-        </button>
+        <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition">Logout</button>
       </div>
 
       <div className="p-6 text-center">
         <div className="space-x-4 mb-4">
-          <button
-            onClick={() => setActiveTab("users")}
-            className={`px-5 py-2 rounded-md ${
-              activeTab === "users"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 hover:bg-gray-300"
-            }`}
-          >
-            Users
-          </button>
-          <button
-            onClick={() => setActiveTab("posts")}
-            className={`px-5 py-2 rounded-md ${
-              activeTab === "posts"
-                ? "bg-green-600 text-white"
-                : "bg-gray-200 hover:bg-gray-300"
-            }`}
-          >
-            Posts
-          </button>
+          <button onClick={() => setActiveTab("users")} className={`px-5 py-2 rounded-md ${activeTab === "users" ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"}`}>Users</button>
+          <button onClick={() => setActiveTab("posts")} className={`px-5 py-2 rounded-md ${activeTab === "posts" ? "bg-green-600 text-white" : "bg-gray-200 hover:bg-gray-300"}`}>Posts</button>
         </div>
 
         {activeTab && !isAdding && !editItem && (
           <div className="mb-5 text-right">
-            <button
-              onClick={handleAdd}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
-            >
-              Add {activeTab === "users" ? "User" : "Post"}
-            </button>
+            <button onClick={handleAdd} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">Add {activeTab === "users" ? "User" : "Post"}</button>
           </div>
         )}
 
         {activeTab === "users" && (
           <>
             <h2 className="text-xl font-semibold mb-3">Users List</h2>
-            <Table
-              data={users}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isAdding={isAdding}
-              editItem={editItem}
-              formData={formData}
-              onChange={handleChange}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              fields={[
-                { key: "id", label: "ID" },
-                { key: "name", label: "Name" },
-                { key: "email", label: "Email" },
-                { key: "phone", label: "Phone" },
-                { key: "username", label: "Username" },
-                { key: "website", label: "Website" },
-              ]}
-            />
+            <Table data={users} onEdit={handleEdit} onDelete={handleDelete} isAdding={isAdding} editItem={editItem} formData={formData} onChange={handleChange} onSave={handleSave} onCancel={handleCancel} fields={[{ key: "id", label: "ID" }, { key: "name", label: "Name" }, { key: "email", label: "Email" }, { key: "phone", label: "Phone" }, { key: "username", label: "Username" }, { key: "website", label: "Website" }]} />
           </>
         )}
 
         {activeTab === "posts" && (
           <>
             <h2 className="text-xl font-semibold mb-3">Posts List</h2>
-            <Table
-              data={posts}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isAdding={isAdding}
-              editItem={editItem}
-              formData={formData}
-              onChange={handleChange}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              fields={[
-                { key: "id", label: "ID" },
-                { key: "title", label: "Title" },
-                { key: "body", label: "Body" },
-              ]}
-            />
+            <Table data={posts} onEdit={handleEdit} onDelete={handleDelete} isAdding={isAdding} editItem={editItem} formData={formData} onChange={handleChange} onSave={handleSave} onCancel={handleCancel} fields={[{ key: "id", label: "ID" }, { key: "title", label: "Title" }, { key: "body", label: "Body" }]} />
           </>
         )}
       </div>

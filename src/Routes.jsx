@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Login from "./Pages/Login.jsx";
 import Signup from "./Pages/Signup.jsx";
 import ForgetPassword from "./Pages/ForgetPassword.jsx";
@@ -28,9 +29,11 @@ export default function AppRoutes() {
         <Route path="/verify-otp" element={<OTPVerification />} />
         <Route path="/new-password" element={<NewPassword />} />
         <Route path="/success" element={<SuccessPage />} />
+
         <Route path="/home" element={<Home />} />
         <Route path="/posts" element={<PostsPage />} />
         <Route path="/users" element={<UsersPage />} />
+
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </>
